@@ -64,53 +64,53 @@ const images = [
   },
 ];
 
-// знаходимо контейнер галереї
-const galleryContainer = document.querySelector('.gallery'); 
+// // знаходимо контейнер галереї
+const gallery = document.querySelector(".gallery");
 
-// створюємо розмітку елемента галереї
-const createGalleryItem = ({ preview, original, description }) => {
-    return `
-        <li class="gallery-item">
-            <a class="gallery-link" href="${original}">
-                <img
-                    class="gallery-image"
-                    src="${preview}"
-                    data-source="${original}"
-                    alt="${description}"
-                />
-            </a>
-        </li>
-    `;
-};
+// // створюємо розмітку елемента галереї
+function createGalleryItem({ preview, original, description }) {
+  return `
+    <li class="gallery-item">
+      <a class="gallery-link" href="${original}">
+        <img class="gallery-img"
+          src="${preview}" 
+          data-source="${original}" 
+          alt="${description}">
+      </a>
+    </li>`;
+}
 
-// створюємо розмітку всієї галереї
-const galleryMarkup = images.map(createGalleryItem).join('');
-
-// додаємо розмітку всієї галереї в контейнер
-galleryContainer.innerHTML = galleryMarkup;
-
-// додаємо слухача подій на контейнер галереї
-galleryContainer.addEventListener('click', event => {
+function onGalleryClick(event) {
   event.preventDefault();
-  if (event.target.nodeName !== 'IMG') {
+  if (event.target.nodeName !== "IMG") {
     return;
   }
-  const largeImageURL = event.target.dataset.source;
-  const img = document.createElement('img');
-  img.src = largeImageURL;
-  img.style.width = '1112px'; 
-  img.style.height = '640px'; 
-  img.addEventListener('load', () => {
-    const instance = basicLightbox.create(img.outerHTML);
-    instance.show();
+  const url = event.target.dataset.source;
+  const modal = basicLightbox.create(
+    `<img class="modal" src="${url}">`,
+    {
+      onShow: () => {
+        document.addEventListener("keydown", onKeyPress);
+      },
+      onClose: () => {
+        document.removeEventListener("keydown", onKeyPress);
+      },
+    }
+  );
 
-    // Додаємо обробник подій для Escape
-    const escapeHandler = (event) => {
-      if (event.key === 'Escape') {
-        instance.close();
-        document.removeEventListener('keydown', escapeHandler);
-      }
-    };
-    document.addEventListener('keydown', escapeHandler);
-  });
-});
+  modal.show();
+
+  function onKeyPress(elem) {
+    if (elem.key === "Escape") {
+      modal.close();
+    }
+  }
+}
+
+function newGallery() {
+  const galleryItemsHTML = images.map(createGalleryItem).join("");
+  gallery.innerHTML = galleryItemsHTML;
+  gallery.addEventListener("click", onGalleryClick);
+}
+
+newGallery();
